@@ -1135,7 +1135,7 @@ const FieldControlApp: React.FC<FieldControlAppProps> = ({ user }) => {
                             <MapPin className="w-4 h-4 mr-2 text-emerald-500" /> Cartographie des Zones (Volume & Conformité)
                         </h4>
                         <div className="flex gap-2 text-[9px] font-bold text-slate-500 uppercase">
-                            <span className="flex items-center"><span className="w-2 h-2 bg-emerald-500 rounded-full mr-1"></span> >80%</span>
+                            <span className="flex items-center"><span className="w-2 h-2 bg-emerald-500 rounded-full mr-1"></span> &gt;80%</span>
                             <span className="flex items-center"><span className="w-2 h-2 bg-amber-500 rounded-full mr-1"></span> 50-80%</span>
                             <span className="flex items-center"><span className="w-2 h-2 bg-rose-500 rounded-full mr-1"></span> &lt;50%</span>
                         </div>

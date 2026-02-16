@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { User, HRSettings, RawAttendanceRecord, AuthorizedAbsence, AttendanceAnalysis, ModulePermissions } from '../types';
 import { saveCloudData, getCloudData } from '../services/database';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI as GoogleGenAI } from "@google/generative-ai";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, Legend, AreaChart, Area, LineChart, Line, ComposedChart

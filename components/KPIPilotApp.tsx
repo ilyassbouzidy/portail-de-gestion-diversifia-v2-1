@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { User, ADVOrder, SalesData, Prospect, Opportunity } from '../types';
 import { getCloudData, saveCloudData, safeJSON } from '../services/database';
 import { SALES_AGENTS } from '../constants'; // Import pour la liste complète des agents disponibles
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI as GoogleGenAI } from "@google/generative-ai";
 import { 
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, 
   PieChart, Pie, Cell, AreaChart, Area, Legend, Line, ComposedChart

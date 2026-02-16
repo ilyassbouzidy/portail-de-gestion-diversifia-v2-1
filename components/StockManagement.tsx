@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { StockItem, StockMovement, User, StockUnit, StockAgent, ModulePermissions } from '../types';
 import { saveCloudData, getCloudData } from '../services/database';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI as GoogleGenAI } from "@google/generative-ai";
 import { 
   Package, ArrowUpRight, ArrowDownLeft, Search, Plus, 
   History, AlertCircle, LayoutGrid, X, Save, TrendingUp,

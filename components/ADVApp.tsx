@@ -3,7 +3,7 @@ import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { User, ADVOrder, ADVValidationStatus, ADVSiStatus } from '../types';
 import { getCloudData, saveCloudData } from '../services/database';
 import { SALES_AGENTS, PRODUCT_OFFERS, PRESTATAIRES } from '../constants';
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenerativeAI as GoogleGenAI } from "@google/generative-ai";
 import { 
   Search, Plus, Filter, CheckCircle2, AlertTriangle, 
   Clock, XCircle, RotateCcw, Save, X, Edit3, Trash2, 
