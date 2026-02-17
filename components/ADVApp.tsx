@@ -1204,6 +1204,7 @@ const ADVApp: React.FC<ADVAppProps> = ({ user }) => {
                              <div className="flex items-center mt-1 space-x-2">
                                <span className="text-[9px] font-bold text-slate-400 font-mono bg-slate-100 px-1.5 rounded border border-slate-200">{order.refContrat}</span>
                                <span className="text-[9px] text-slate-400 flex items-center font-bold tracking-tight"><Calendar className="w-2.5 h-2.5 mr-1" /> {new Date(order.dateDepot).toLocaleDateString()} {new Date(order.dateDepot).toLocaleTimeString()}</span>
+
                              </div>
                           </td>
                           <td className="p-4">
@@ -1244,6 +1245,7 @@ const ADVApp: React.FC<ADVAppProps> = ({ user }) => {
                              <div className="flex items-center space-x-2">
                                 <div className="w-6 h-6 rounded-lg bg-slate-900 text-white flex items-center justify-center text-[9px] font-black border border-slate-700 shadow-sm">{order.commercial?.charAt(0)}</div>
                                 <span className="text-[10px] font-black text-slate-700 truncate max-w-[100px] uppercase tracking-tighter">{order.commercial}</span>
+
                              </div>
                           </td>
                           <td className="p-4 text-right">
