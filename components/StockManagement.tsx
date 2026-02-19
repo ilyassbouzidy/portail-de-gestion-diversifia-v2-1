@@ -175,14 +175,32 @@ const StockManagement: React.FC<StockManagementProps> = ({ user }) => {
   useEffect(() => {
     const loadData = async () => {
       setIsLoading(true);
-      const [storedItems, storedUnits, storedMoves, storedSellers] = await Promise.all([
+      const [storedItems, storedUnits, storedMoves, storedSellers, storedUsers] = await Promise.all([
         getCloudData('stock_items'), getCloudData('stock_units'), 
-        getCloudData('stock_movements'), getCloudData('stock_sellers')
+        getCloudData('stock_movements'), getCloudData('stock_sellers'),
+        getCloudData('users')
       ]);
       
-      const sortedSellers = (storedSellers || []).sort((a: StockAgent, b: StockAgent) => a.name.localeCompare(b.name));
+      // Merge sellers from stock_sellers and users with associatedAgentName
+      const existingSellers = storedSellers || [];
+      const users = storedUsers || [];
+      const existingSellerNames = new Set(existingSellers.map((s: StockAgent) => s.name.toLowerCase()));
       
-      setItems(storedItems || []); setUnits(storedUnits || []); setMovements(storedMoves || []); setSellers(sortedSellers);
+      // Add users who are agents (not admins) and not already in sellers list
+      const userSellers = users
+        .filter((u: User) => u.role === 'agent' && u.associatedAgentName && 
+                u.associatedAgentName.toLowerCase() !== 'administration' &&
+                !existingSellerNames.has(u.associatedAgentName.toLowerCase()))
+        .map((u: User) => ({
+          id: Math.random().toString(36).substr(2, 9),
+          name: u.associatedAgentName!,
+          phone: ''
+        }));
+      
+      const mergedSellers = [...existingSellers, ...userSellers]
+        .sort((a: StockAgent, b: StockAgent) => a.name.localeCompare(b.name));
+      
+      setItems(storedItems || []); setUnits(storedUnits || []); setMovements(storedMoves || []); setSellers(mergedSellers);
       setIsLoading(false);
     };
     loadData();

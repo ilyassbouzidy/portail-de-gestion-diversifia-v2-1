@@ -19,6 +19,7 @@ import {
 
 interface FieldControlAppProps {
   user: User;
+  salesAgents?: string[];
 }
 
 const COLORS = ['#0d9488', '#f43f5e', '#f59e0b', '#3b82f6', '#8b5cf6', '#ec4899', '#6366f1'];
@@ -68,7 +69,7 @@ const CustomizedTreemapContent = (props: any) => {
   );
 };
 
-const FieldControlApp: React.FC<FieldControlAppProps> = ({ user }) => {
+const FieldControlApp: React.FC<FieldControlAppProps> = ({ user, salesAgents = SALES_AGENTS }) => {
   const isAdmin = user.role === 'admin';
   const hasPerm = (action: keyof ModulePermissions) => isAdmin || !!user.permissions?.fieldControl?.[action];
 
@@ -486,7 +487,7 @@ const FieldControlApp: React.FC<FieldControlAppProps> = ({ user }) => {
   // Liste des agents qui ne sont dans aucune équipe configurée
   const unassignedAgents = useMemo(() => {
     const assigned = new Set(teamsConfig.flatMap(t => t.members));
-    return SALES_AGENTS.filter(a => !assigned.has(a));
+    return salesAgents.filter(a => !assigned.has(a));
   }, [teamsConfig]);
 
   // --- RENDERERS ---
@@ -599,7 +600,7 @@ const FieldControlApp: React.FC<FieldControlAppProps> = ({ user }) => {
                         )}
                         {teamsConfig.length === 0 && unassignedAgents.length === 0 && (
                             // Fallback si pas de config équipe
-                            SALES_AGENTS.map(agent => <option key={agent} value={agent}>{agent}</option>)
+                            salesAgents.map(agent => <option key={agent} value={agent}>{agent}</option>)
                         )}
                     </>
                 )}

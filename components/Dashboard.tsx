@@ -14,9 +14,10 @@ import { Calculator, BarChart3, History, Save, Printer, User as UserIcon, Loader
 
 interface DashboardProps {
   currentUser: User;
+  salesAgents?: string[];
 }
 
-const Dashboard: React.FC<DashboardProps> = ({ currentUser }) => {
+const Dashboard: React.FC<DashboardProps> = ({ currentUser, salesAgents = SALES_AGENTS }) => {
   const isAdmin = currentUser.role === 'admin';
   const [activeTab, setActiveTab] = useState<'calculator' | 'analytics' | 'history'>('calculator');
   const [isLoading, setIsLoading] = useState(true);
@@ -24,7 +25,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser }) => {
   const [isImporting, setIsImporting] = useState(false);
   
   const [selectedAgent, setSelectedAgent] = useState<string>(
-    isAdmin ? SALES_AGENTS[0] : (currentUser.associatedAgentName || '')
+    isAdmin ? salesAgents[0] : (currentUser.associatedAgentName || '')
   );
   
   const [selectedMonth, setSelectedMonth] = useState<string>(new Date().toISOString().slice(0, 7));
@@ -54,7 +55,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser }) => {
 
       if (isAdmin && activeTab === 'analytics') {
         const allData = [];
-        for (const agent of SALES_AGENTS) {
+        for (const agent of salesAgents) {
            const key = `commissions_${selectedMonth}_${agent}`;
            const d = await getCloudData(key);
            if (d) {
@@ -77,7 +78,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser }) => {
     let confirmMessage = `Voulez-vous importer les ventes FACTURÉES de ${selectedAgent} pour ${selectedMonth} ?\nCela écrasera les quantités actuelles.`;
     
     if (isAdmin) {
-      confirmMessage = `MODE ADMINISTRATEUR :\nVoulez-vous lancer l'importation automatique pour TOUS LES VENDEURS (${SALES_AGENTS.length}) sur le mois de ${selectedMonth} ?\n\nCette action mettra à jour les fiches commissions de toute l'équipe avec les données facturées.`;
+      confirmMessage = `MODE ADMINISTRATEUR :\nVoulez-vous lancer l'importation automatique pour TOUS LES VENDEURS (${salesAgents.length}) sur le mois de ${selectedMonth} ?\n\nCette action mettra à jour les fiches commissions de toute l'équipe avec les données facturées.`;
     }
 
     if (!confirm(confirmMessage)) return;
@@ -95,7 +96,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser }) => {
       const normalize = (str: string) => str ? str.normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim().toUpperCase() : "";
 
       // Liste des agents à traiter (Tous si Admin, sinon juste le sélectionné)
-      const agentsToProcess = isAdmin ? SALES_AGENTS : [selectedAgent];
+      const agentsToProcess = isAdmin ? salesAgents : [selectedAgent];
       
       let globalCount = 0;
       let processedAgentsCount = 0;
@@ -304,7 +305,7 @@ const Dashboard: React.FC<DashboardProps> = ({ currentUser }) => {
                    }}
                    className="pl-10 pr-8 py-3 bg-slate-50 border-none rounded-xl font-bold text-sm text-slate-700 appearance-none cursor-pointer focus:ring-2 focus:ring-[#ff7900]/20"
                  >
-                    {SALES_AGENTS.map(agent => <option key={agent} value={agent}>{agent}</option>)}
+                    {salesAgents.map(agent => <option key={agent} value={agent}>{agent}</option>)}
                  </select>
               </div>
             )}

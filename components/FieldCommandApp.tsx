@@ -19,7 +19,7 @@ const INITIAL_ZONES: FieldZone[] = [
   { id: 'zone_hay_mohammadi', name: 'Hay Mohammadi', city: 'Casablanca', centerLat: 33.5955, centerLng: -7.5735, radiusKm: 2 },
 ];
 
-const FieldCommandApp: React.FC<FieldCommandAppProps> = ({ user }) => {
+const FieldCommandApp: React.FC<FieldCommandAppProps> = ({ user, salesAgents = SALES_AGENTS }) => {
   const isAdmin = user.role === 'admin';
   const hasPerm = (action: keyof ModulePermissions) => isAdmin || !!user.permissions?.fieldCommand?.[action];
 
@@ -339,8 +339,8 @@ const FieldCommandApp: React.FC<FieldCommandAppProps> = ({ user }) => {
     const daySessions = sessions.filter(s => s.date === filterDate);
     
     // Construction de la liste complète des agents avec leur statut
-    // On croise la liste statique SALES_AGENTS avec les sessions actives
-    const fullCockpitList = SALES_AGENTS.map(agentName => {
+    // On croise la liste statique salesAgents avec les sessions actives
+    const fullCockpitList = salesAgents.map(agentName => {
         // Recherche insensible à la casse
         const session = daySessions.find(s => s.agentName.toLowerCase() === agentName.toLowerCase());
         const zone = session ? zones.find(z => z.id === session.zoneId) : null;

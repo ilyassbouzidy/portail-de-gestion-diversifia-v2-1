@@ -102,6 +102,9 @@ const KPIPilotApp: React.FC<KPIPilotAppProps> = ({ user }) => {
   // Nouveaux états pour B2B
   const [prospects, setProspects] = useState<Prospect[]>([]);
   const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+  
+  // Dynamic sales agents from User Management Panel
+  const [salesAgents, setSalesAgents] = useState<string[]>(SALES_AGENTS);
 
   const [activeTab, setActiveTab] = useState<'overview' | 'teams' | 'supervision' | 'meeting' | 'ai'>('overview');
   
@@ -141,19 +144,32 @@ const KPIPilotApp: React.FC<KPIPilotAppProps> = ({ user }) => {
     const fetchData = async () => {
       setIsLoading(true);
       try {
-        const [adv, objs, config, forecasts, pros, opps] = await Promise.all([
+        const [adv, objs, config, forecasts, pros, opps, users] = await Promise.all([
           getCloudData('adv_orders'),
           getCloudData('kpi_objectives_detail'),
           getCloudData('kpi_teams_config'),
           getCloudData('kpi_daily_forecasts'),
           getCloudData('b2b_prospects'),
-          getCloudData('b2b_opportunities')
+          getCloudData('b2b_opportunities'),
+          getCloudData('users')
         ]);
         setAdvOrders(adv || []);
         setObjectivesStore(objs || {});
         setDailyForecasts(forecasts || {});
         setProspects(pros || []);
         setOpportunities(opps || []);
+        
+        // Merge hardcoded SALES_AGENTS with users from User Management Panel
+        const dynamicAgents = new Set(SALES_AGENTS);
+        if (users && Array.isArray(users)) {
+          users.forEach((u: any) => {
+            if (u.role === 'agent' && u.associatedAgentName && 
+                u.associatedAgentName.toLowerCase() !== 'administration') {
+              dynamicAgents.add(u.associatedAgentName);
+            }
+          });
+        }
+        setSalesAgents(Array.from(dynamicAgents).sort((a, b) => a.localeCompare(b)));
         
         if (config) {
           setProjectManager(config.projectManager || "Adnane Lommuni");
@@ -1098,7 +1114,7 @@ const KPIPilotApp: React.FC<KPIPilotAppProps> = ({ user }) => {
                  <div>
                     <label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Chef de Projet</label>
                     <select value={projectManager} onChange={e => setProjectManager(e.target.value)} className="w-full p-4 rounded-xl bg-slate-50 border-none font-bold text-sm appearance-none cursor-pointer">
-                       {SALES_AGENTS.map(agent => <option key={agent} value={agent}>{agent}</option>)}
+                       {salesAgents.map(agent => <option key={agent} value={agent}>{agent}</option>)}
                     </select>
                  </div>
                  <div className="space-y-4">
@@ -1128,8 +1144,8 @@ const KPIPilotApp: React.FC<KPIPilotAppProps> = ({ user }) => {
                     <div className="bg-white p-6 rounded-3xl border-2 border-indigo-100 shadow-xl space-y-4 animate-in slide-in-from-bottom-4">
                        <h4 className="text-sm font-black text-indigo-900 uppercase tracking-widest mb-2">{teamsConfig.find(t => t.id === editingTeam.id) ? 'Modifier Équipe' : 'Nouvelle Équipe'}</h4>
                        <div><label className="text-[9px] font-black uppercase text-slate-400 ml-2">Nom Équipe</label><input type="text" value={editingTeam.name} onChange={e => setEditingTeam({...editingTeam, name: e.target.value})} className="w-full p-3 rounded-xl bg-slate-50 border-none font-bold text-sm" placeholder="ex: Team Force" /></div>
-                       <div><label className="text-[9px] font-black uppercase text-slate-400 ml-2">Superviseur</label><select value={editingTeam.supervisor} onChange={e => setEditingTeam({...editingTeam, supervisor: e.target.value})} className="w-full p-3 rounded-xl bg-slate-50 border-none font-bold text-sm appearance-none cursor-pointer"><option value="">Sélectionner...</option>{SALES_AGENTS.map(agent => <option key={agent} value={agent}>{agent}</option>)}</select></div>
-                       <div><label className="text-[9px] font-black uppercase text-slate-400 ml-2">Membres</label><div className="bg-slate-50 p-4 rounded-xl border border-slate-100 max-h-40 overflow-y-auto custom-scrollbar grid grid-cols-2 gap-2">{SALES_AGENTS.map(agent => (<label key={agent} className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${editingTeam.members.includes(agent) ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-slate-200'}`}><input type="checkbox" checked={editingTeam.members.includes(agent)} onChange={e => { if (e.target.checked) setEditingTeam({...editingTeam, members: [...editingTeam.members, agent]}); else setEditingTeam({...editingTeam, members: editingTeam.members.filter(m => m !== agent)}); }} className="hidden" /><span className="text-[10px] font-bold uppercase">{agent}</span></label>))}</div></div>
+                       <div><label className="text-[9px] font-black uppercase text-slate-400 ml-2">Superviseur</label><select value={editingTeam.supervisor} onChange={e => setEditingTeam({...editingTeam, supervisor: e.target.value})} className="w-full p-3 rounded-xl bg-slate-50 border-none font-bold text-sm appearance-none cursor-pointer"><option value="">Sélectionner...</option>{salesAgents.map(agent => <option key={agent} value={agent}>{agent}</option>)}</select></div>
+                       <div><label className="text-[9px] font-black uppercase text-slate-400 ml-2">Membres</label><div className="bg-slate-50 p-4 rounded-xl border border-slate-100 max-h-40 overflow-y-auto custom-scrollbar grid grid-cols-2 gap-2">{salesAgents.map(agent => (<label key={agent} className={`flex items-center p-2 rounded-lg cursor-pointer transition-colors ${editingTeam.members.includes(agent) ? 'bg-indigo-100 text-indigo-700' : 'hover:bg-slate-200'}`}><input type="checkbox" checked={editingTeam.members.includes(agent)} onChange={e => { if (e.target.checked) setEditingTeam({...editingTeam, members: [...editingTeam.members, agent]}); else setEditingTeam({...editingTeam, members: editingTeam.members.filter(m => m !== agent)}); }} className="hidden" /><span className="text-[10px] font-bold uppercase">{agent}</span></label>))}</div></div>
                        <div className="flex gap-2 pt-2"><button onClick={() => setEditingTeam(null)} className="flex-1 py-3 bg-slate-100 text-slate-500 rounded-xl font-black uppercase text-[10px]">Annuler</button><button onClick={() => handleUpdateTeam(editingTeam)} className="flex-1 py-3 bg-indigo-600 text-white rounded-xl font-black uppercase text-[10px] shadow-lg">Valider</button></div>
                     </div>
                  )}

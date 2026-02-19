@@ -14,6 +14,7 @@ import { SALES_AGENTS, PRODUCT_OFFERS } from '../constants';
 
 interface B2BProspectAppProps {
   user: User;
+  salesAgents?: string[];
 }
 
 const STAGES: OpportunityStage[] = ['Lancée', 'En cours', 'Facturée', 'Annulée'];
@@ -27,6 +28,8 @@ const STAGE_COLORS: Record<OpportunityStage, string> = {
 
 const PROSPECT_TYPES = ['Commerce', 'BTOC', 'Association', 'Entreprise', 'Autre'];
 const PROSPECT_STATUSES = ['Nouveau Client', 'Ancien Client', 'Recommandation'];
+
+const B2BProspectApp: React.FC<B2BProspectAppProps> = ({ user, salesAgents = SALES_AGENTS }) => {
 
 // Palette de couleurs par agent
 const AGENT_COLORS = [
@@ -42,7 +45,6 @@ const MAP_BOUNDS = {
   east: -0.8   // Longitude Est (Frontière Algérie)
 };
 
-const B2BProspectApp: React.FC<B2BProspectAppProps> = ({ user }) => {
   const isAdmin = user.role === 'admin';
   const hasPerm = (action: keyof ModulePermissions) => isAdmin || !!user.permissions?.b2bProspect?.[action];
 
@@ -228,7 +230,7 @@ const B2BProspectApp: React.FC<B2BProspectAppProps> = ({ user }) => {
         const left = ((p.longitude - MAP_BOUNDS.west) / lngRange) * 100;
         
         // Couleur par agent
-        const agentIndex = SALES_AGENTS.indexOf(p.assignedTo);
+        const agentIndex = salesAgents.indexOf(p.assignedTo);
         const color = agentIndex >= 0 ? AGENT_COLORS[agentIndex % AGENT_COLORS.length] : '#94a3b8';
 
         return { ...p, top, left, color };
@@ -491,7 +493,7 @@ const B2BProspectApp: React.FC<B2BProspectAppProps> = ({ user }) => {
                  className="w-full p-3.5 md:p-3 rounded-xl md:rounded-2xl bg-slate-50 border-none text-xs font-bold text-slate-600 appearance-none cursor-pointer"
                >
                   <option value="all">Tous agents</option>
-                  {SALES_AGENTS.map(agent => <option key={agent} value={agent}>{agent}</option>)}
+                  {salesAgents.map(agent => <option key={agent} value={agent}>{agent}</option>)}
                </select>
             </div>
          )}
@@ -657,13 +659,13 @@ const B2BProspectApp: React.FC<B2BProspectAppProps> = ({ user }) => {
                    </div>
                    <div className="flex flex-col gap-2 pointer-events-auto">
                       <div className="bg-white/90 backdrop-blur-md p-2 rounded-xl border border-slate-200 flex flex-col gap-1 shadow-lg">
-                         {SALES_AGENTS.filter(a => mapData.points.some(p => p.assignedTo === a)).slice(0, 8).map((agent, i) => (
+                         {salesAgents.filter(a => mapData.points.some(p => p.assignedTo === a)).slice(0, 8).map((agent, i) => (
                             <div key={agent} className="flex items-center gap-2">
-                               <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: AGENT_COLORS[SALES_AGENTS.indexOf(agent) % AGENT_COLORS.length] }}></div>
+                               <div className="w-2.5 h-2.5 rounded-full shadow-sm" style={{ backgroundColor: AGENT_COLORS[salesAgents.indexOf(agent) % AGENT_COLORS.length] }}></div>
                                <span className="text-[8px] font-black text-slate-700 uppercase">{agent.split(' ')[0]}</span>
                             </div>
                          ))}
-                         {SALES_AGENTS.filter(a => mapData.points.some(p => p.assignedTo === a)).length > 8 && (
+                         {salesAgents.filter(a => mapData.points.some(p => p.assignedTo === a)).length > 8 && (
                             <span className="text-[8px] text-slate-400 text-center">+ autres...</span>
                          )}
                       </div>
@@ -760,7 +762,7 @@ const B2BProspectApp: React.FC<B2BProspectAppProps> = ({ user }) => {
                  <div><label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Téléphone</label><input type="tel" value={prospectForm.phone || ''} onChange={e => setProspectForm({...prospectForm, phone: e.target.value})} className="w-full p-4 rounded-2xl bg-slate-50 border-none font-bold text-sm shadow-inner" placeholder="06XXXXXXXX" /></div>
                  <div><label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">État</label><select value={prospectForm.status || 'Nouveau Client'} onChange={e => setProspectForm({...prospectForm, status: e.target.value as any})} className="w-full p-4 rounded-2xl bg-slate-50 border-none font-bold text-sm appearance-none shadow-inner">{PROSPECT_STATUSES.map(s => <option key={s} value={s}>{s}</option>)}</select></div>
                  <div className="flex items-center justify-between bg-slate-50 p-4 rounded-2xl border border-slate-100"><div className="flex items-center space-x-3"><div className={`p-3 rounded-xl ${prospectForm.latitude ? 'bg-emerald-100 text-emerald-600' : 'bg-slate-200 text-slate-400'}`}><MapPin className="w-6 h-6" /></div><div><p className="text-[10px] font-black uppercase text-slate-400">Position GPS *</p><p className="text-xs font-bold text-slate-700">{prospectForm.latitude ? `${prospectForm.latitude.toFixed(4)}, ${prospectForm.longitude?.toFixed(4)}` : 'Non défini (Requis)'}</p></div></div><button onClick={handleGetLocation} type="button" className="px-5 py-3 bg-white border border-slate-200 rounded-xl text-[10px] font-black uppercase hover:bg-slate-50 transition-all shadow-sm active:scale-95">Localiser</button></div>
-                 <div><label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Agent Assigné *</label><select value={prospectForm.assignedTo || ''} onChange={e => setProspectForm({...prospectForm, assignedTo: e.target.value})} className="w-full p-4 rounded-2xl bg-slate-50 border-none font-bold text-sm appearance-none shadow-inner"><option value="">Sélectionner un agent...</option>{SALES_AGENTS.map(a => <option key={a} value={a}>{a}</option>)}</select></div>
+                 <div><label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Agent Assigné *</label><select value={prospectForm.assignedTo || ''} onChange={e => setProspectForm({...prospectForm, assignedTo: e.target.value})} className="w-full p-4 rounded-2xl bg-slate-50 border-none font-bold text-sm appearance-none shadow-inner"><option value="">Sélectionner un agent...</option>{salesAgents.map(a => <option key={a} value={a}>{a}</option>)}</select></div>
               </div>
               <button onClick={handleSaveProspect} disabled={isSaving} className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black uppercase text-sm shadow-xl active:scale-95 transition-transform mt-4">{isSaving ? 'Enregistrement...' : 'Valider Prospect'}</button>
            </div>

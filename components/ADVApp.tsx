@@ -16,6 +16,7 @@ import {
 
 interface ADVAppProps {
   user: User;
+  salesAgents?: string[];
 }
 
 const STATUS_COLORS: Record<string, string> = {
@@ -169,7 +170,7 @@ const getCategoryFromOffer = (offre: string) => {
   return 'Autre';
 };
 
-const ADVApp: React.FC<ADVAppProps> = ({ user }) => {
+const ADVApp: React.FC<ADVAppProps> = ({ user, salesAgents = SALES_AGENTS }) => {
   const isAdmin = user.role === 'admin';
   const hasWritePerm = isAdmin || user.permissions?.adv?.create || user.permissions?.adv?.update;
   const canDelete = isAdmin || user.permissions?.adv?.delete;
@@ -1096,7 +1097,7 @@ const ADVApp: React.FC<ADVAppProps> = ({ user }) => {
            </div>
            <MultiSelect label="Statut ADV" options={['EN ATTENTE', 'VALIDE', 'BLOQUÉ', 'ANNULÉ']} selected={filterStatusAdv} onChange={setFilterStatusAdv} colorClass="text-orange-500" />
            <MultiSelect label="Statut Activation" options={Object.keys(SI_STATUS_COLORS)} selected={filterStatusSi} onChange={setFilterStatusSi} colorClass="text-blue-500" />
-           <MultiSelect label="Vendeur" options={SALES_AGENTS} selected={filterCommercial} onChange={setFilterCommercial} colorClass="text-slate-500" />
+           <MultiSelect label="Vendeur" options={salesAgents} selected={filterCommercial} onChange={setFilterCommercial} colorClass="text-slate-500" />
            <MultiSelect label="Prestataire" options={PRESTATAIRES} selected={filterPrestataire} onChange={setFilterPrestataire} colorClass="text-slate-500" />
         </div>
 
@@ -1185,15 +1186,16 @@ const ADVApp: React.FC<ADVAppProps> = ({ user }) => {
               <table className="w-full text-left border-collapse">
                  <thead className="bg-white text-[9px] font-black uppercase text-slate-400 sticky top-0 z-10 shadow-sm">
                     <tr>
-                       <th className="p-4 w-[18%]">Client / Réf</th>
-                       <th className="p-4 w-[10%]">Offre</th>
-                       <th className="p-4 w-[12%] text-center">Validation</th>
-                       <th className="p-4 w-[10%] text-center bg-orange-50/20 text-orange-600">SLA ADV</th>
-                       <th className="p-4 w-[12%] text-center">Statut SI</th>
-                       <th className="p-4 w-[10%] text-center bg-blue-50/20 text-blue-600">SLA ACTIV.</th>
-                       <th className="p-4 w-[8%] text-center">Date GO</th>
-                       <th className="p-4 w-[8%]">Commercial</th>
-                       <th className="p-4 text-right w-[12%]">Action</th>
+                       <th className="p-4 w-[16%]">Client / Réf</th>
+                       <th className="p-4 w-[10%]">Téléphone</th>
+                       <th className="p-4 w-[9%]">Offre</th>
+                       <th className="p-4 w-[11%] text-center">Validation</th>
+                       <th className="p-4 w-[9%] text-center bg-orange-50/20 text-orange-600">SLA ADV</th>
+                       <th className="p-4 w-[11%] text-center">Statut SI</th>
+                       <th className="p-4 w-[9%] text-center bg-blue-50/20 text-blue-600">SLA ACTIV.</th>
+                       <th className="p-4 w-[7%] text-center">Date GO</th>
+                       <th className="p-4 w-[7%]">Commercial</th>
+                       <th className="p-4 text-right w-[11%]">Action</th>
                     </tr>
                  </thead>
                  <tbody className="divide-y divide-slate-50">
@@ -1206,6 +1208,11 @@ const ADVApp: React.FC<ADVAppProps> = ({ user }) => {
                                <span className="text-[9px] text-slate-400 flex items-center font-bold tracking-tight"><Calendar className="w-2.5 h-2.5 mr-1" /> {new Date(order.dateDepot).toLocaleDateString()} {new Date(order.dateDepot).toLocaleTimeString()}</span>
 
                              </div>
+                          </td>
+                          <td className="p-4">
+                             <span className="text-[9px] font-bold text-slate-600 bg-slate-50 px-2 py-1 rounded border border-slate-200 font-mono truncate max-w-[120px] block">
+                               {order.telephone || '-'}
+                             </span>
                           </td>
                           <td className="p-4">
                              <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 px-2 py-1 rounded-lg border border-indigo-100 truncate max-w-[100px] block uppercase tracking-tight" title={order.offre}>
@@ -1441,7 +1448,7 @@ const ADVApp: React.FC<ADVAppProps> = ({ user }) => {
                        <div className="space-y-1"><label className="text-[9px] font-black uppercase text-slate-400 ml-2">Date Vérification</label><input type="date" value={formOrder.dateSerieVerifie || ''} onChange={e => updateFormOrder({ dateSerieVerifie: e.target.value })} className="w-full p-3 rounded-xl bg-white border-none font-bold text-sm shadow-inner" /></div>
                     </div>
                  </div>
-                 <div className="space-y-1"><label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Commercial en charge</label><select value={formOrder.commercial || ''} onChange={e => updateFormOrder({ commercial: e.target.value })} className="w-full p-4 rounded-xl bg-slate-50 border-none font-black text-sm appearance-none cursor-pointer shadow-inner"><option value="">Sélectionner un agent...</option>{SALES_AGENTS.map(a => <option key={a} value={a}>{a}</option>)}</select></div>
+                 <div className="space-y-1"><label className="text-[10px] font-black uppercase text-slate-400 ml-2 tracking-widest">Commercial en charge</label><select value={formOrder.commercial || ''} onChange={e => updateFormOrder({ commercial: e.target.value })} className="w-full p-4 rounded-xl bg-slate-50 border-none font-black text-sm appearance-none cursor-pointer shadow-inner"><option value="">Sélectionner un agent...</option>{salesAgents.map(a => <option key={a} value={a}>{a}</option>)}</select></div>
               </div>
               <div className="p-8 bg-slate-50 border-t border-slate-100 flex gap-4">
                  <button onClick={() => setShowModal(false)} className="flex-1 py-4 bg-white border border-slate-200 text-slate-500 rounded-2xl font-black uppercase text-xs hover:bg-slate-100 transition-colors shadow-sm">Annuler</button>

@@ -94,6 +94,9 @@ const HRAttendance: React.FC<HRAttendanceProps> = ({ user }) => {
   const [absences, setAbsences] = useState<AuthorizedAbsence[]>([]);
   const [analysis, setAnalysis] = useState<AttendanceAnalysis[]>([]);
   
+  // Dynamic employees from User Management Panel
+  const [users, setUsers] = useState<User[]>([]);
+  
   // Cache local pour les résultats d'analyse fractionnés par mois (YYYY-MM)
   const [analysisCache, setAnalysisCache] = useState<Record<string, AttendanceAnalysis[]>>({});
   const [availableAnalysisMonths, setAvailableAnalysisMonths] = useState<string[]>([]);
@@ -187,11 +190,12 @@ const HRAttendance: React.FC<HRAttendanceProps> = ({ user }) => {
   useEffect(() => {
     const loadHRData = async () => {
       setIsLoading(true);
-      const [s, r, a, indexData] = await Promise.all([
+      const [s, r, a, indexData, usersData] = await Promise.all([
         getCloudData('hr_settings'),
         getCloudData('hr_raw_records'),
         getCloudData('hr_absences'),
-        getCloudData('hr_analysis_index')
+        getCloudData('hr_analysis_index'),
+        getCloudData('users')
       ]);
       const settingsWithDefaults: HRSettings = {
         entryTime: '08:30',
@@ -206,6 +210,11 @@ const HRAttendance: React.FC<HRAttendanceProps> = ({ user }) => {
       setSettings(settingsWithDefaults);
       if (r) setRawRecords(r);
       if (a) setAbsences(a);
+      
+      // Load users from User Management Panel
+      if (usersData && Array.isArray(usersData)) {
+        setUsers(usersData.filter((u: User) => u.role === 'agent' && u.associatedAgentName && u.associatedAgentName.toLowerCase() !== 'administration'));
+      }
       
       // Chargement intelligent des résultats d'analyse fractionnés
       if (indexData && indexData.months && Array.isArray(indexData.months)) {
@@ -295,8 +304,16 @@ const HRAttendance: React.FC<HRAttendanceProps> = ({ user }) => {
     absences.forEach(a => {
         if (!idsMap.has(a.employeeId)) idsMap.set(a.employeeId, `Collaborateur ${a.employeeId}`);
     });
+    
+    // Add users from User Management Panel who don't have attendance records yet
+    users.forEach(u => {
+      if (u.associatedAgentName && !idsMap.has(u.associatedAgentName) && !Array.from(idsMap.values()).includes(u.associatedAgentName)) {
+        idsMap.set(u.associatedAgentName, u.associatedAgentName);
+      }
+    });
+    
     return Array.from(idsMap.entries()).map(([id, name]) => ({ id, name })).sort((a, b) => a.name.localeCompare(b.name));
-  }, [rawRecords, absences]);
+  }, [rawRecords, absences, users]);
 
   const handleClearRawRecords = async () => {
     if (!hasPerm('delete')) {

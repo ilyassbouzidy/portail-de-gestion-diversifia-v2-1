@@ -15,16 +15,58 @@ import FieldControlApp from './components/FieldControlApp';
 import UserManagementPanel from './components/UserManagementPanel';
 import { User, AppId } from './types';
 import { SALES_AGENTS } from './constants';
+import { getCloudData } from './services/database';
+import { EXCLUDED_AGENTS } from './constants';
 import { LogOut, Home, Maximize2 } from 'lucide-react';
 
 const App: React.FC = () => {
   const [user, setUser] = useState<User | null>(null);
   const [activeApp, setActiveApp] = useState<AppId | null>(null);
+  const [users, setUsers] = useState<User[]>([]);
+  const [salesAgents, setSalesAgents] = useState<string[]>(SALES_AGENTS);
 
   useEffect(() => {
     const session = sessionStorage.getItem('diversifia_session');
     if (session) setUser(JSON.parse(session));
   }, []);
+
+  useEffect(() => {
+    const loadUsers = async () => {
+      const userData = await getCloudData('users');
+      if (userData) {
+        const filteredUsers = (userData as User[])
+          .filter(u => !EXCLUDED_AGENTS.includes((u.associatedAgentName || '').toLowerCase()))
+          .sort((a, b) => (a.associatedAgentName || '').localeCompare(b.associatedAgentName || ''));
+        setUsers(filteredUsers);
+        
+        // Extract unique agent names from users, fall back to SALES_AGENTS if no users
+        const dynamicAgents = filteredUsers
+          .map(u => u.associatedAgentName)
+          .filter((name): name is string => name !== null && name !== undefined && name !== 'Administration')
+          .filter((name, index, arr) => arr.indexOf(name) === index)
+          .sort((a, b) => a.localeCompare(b));
+        
+        setSalesAgents(dynamicAgents.length > 0 ? dynamicAgents : SALES_AGENTS);
+      }
+    };
+    loadUsers();
+  }, []);
+
+  const handleUsersUpdate = (updatedUsers: User[]) => {
+    const filteredUsers = updatedUsers
+      .filter(u => !EXCLUDED_AGENTS.includes((u.associatedAgentName || '').toLowerCase()))
+      .sort((a, b) => (a.associatedAgentName || '').localeCompare(b.associatedAgentName || ''));
+    setUsers(filteredUsers);
+    
+    // Update dynamic agents list
+    const dynamicAgents = filteredUsers
+      .map(u => u.associatedAgentName)
+      .filter((name): name is string => name !== null && name !== undefined && name !== 'Administration')
+      .filter((name, index, arr) => arr.indexOf(name) === index)
+      .sort((a, b) => a.localeCompare(b));
+    
+    setSalesAgents(dynamicAgents.length > 0 ? dynamicAgents : SALES_AGENTS);
+  };
 
   const handleLogin = (loggedInUser: User) => {
     setUser(loggedInUser);
@@ -57,13 +99,13 @@ const App: React.FC = () => {
   const renderApp = () => {
     switch (activeApp) {
       case 'adv':
-        return <ADVApp user={user} />;
+        return <ADVApp user={user} salesAgents={salesAgents} />;
       case 'kpi-pilot':
         return <KPIPilotApp user={user} />;
       case 'commissions':
-        return <Dashboard currentUser={user} />;
+        return <Dashboard currentUser={user} salesAgents={salesAgents} />;
       case 'b2b-prospect':
-        return <B2BProspectApp user={user} />;
+        return <B2BProspectApp user={user} salesAgents={salesAgents} />;
       case 'fleet':
         return <FleetManagement user={user} />;
       case 'stock':
@@ -71,13 +113,13 @@ const App: React.FC = () => {
       case 'hr-attendance':
         return <HRAttendance user={user} />;
       case 'field-command':
-        return <FieldCommandApp user={user} />;
+        return <FieldCommandApp user={user} salesAgents={salesAgents} />;
       case 'field-control':
-        return <FieldControlApp user={user} />;
+        return <FieldControlApp user={user} salesAgents={salesAgents} />;
       case 'users':
         return (
           <div className="max-w-7xl mx-auto px-6 py-12">
-             <UserManagementPanel currentAgents={SALES_AGENTS} onSaveUsers={() => {}} />
+             <UserManagementPanel currentAgents={salesAgents} onSaveUsers={handleUsersUpdate} />
           </div>
         );
       default:
@@ -114,7 +156,7 @@ const App: React.FC = () => {
             {activeApp && (
                <button onClick={() => setActiveApp(null)} className="flex items-center space-x-2 px-4 py-2 bg-white/5 hover:bg-white/10 rounded-xl transition-all text-xs font-bold uppercase tracking-widest">
                   <Home className="w-4 h-4" />
-                  <span className="hidden sm:inline">Portail V1.0.3</span>
+                  <span className="hidden sm:inline">Portail V1.1.4</span>
                </button>
             )}
             <div className="text-right hidden sm:block border-l border-white/10 pl-4 ml-4">
