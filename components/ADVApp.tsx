@@ -338,7 +338,7 @@ const ADVApp: React.FC<ADVAppProps> = ({ user, salesAgents = SALES_AGENTS }) => 
     try {
       const apiHeaders = { 
         'Accept': 'application/json',
-        'DOLAPIKEY': '612eb6153d6997e24da82117e1ab5d4af08ba7d7'
+        'DOLAPIKEY': 'ec6dd9c77b198b15ff31fc72b664a80dd07adb87'
       };
 
       // 1. Get current Firebase data (don't clear it!)
